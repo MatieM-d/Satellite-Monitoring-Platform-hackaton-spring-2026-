@@ -14,13 +14,35 @@ SATELLITE_GROUPS = {
 }
 
 TLE_URLS = {
-    "iss":      "https://celestrak.org/satcat/tle.php?CATNR=25544",
-    "starlink": "https://celestrak.org/SOCRATES/query.php",
-    "gps":      "https://celestrak.org/gnss/gps/gps-ops.txt",
-    "weather":  "https://celestrak.org/weather/weather.txt",
-    "stations": "https://celestrak.org/stations/stations.txt",
-    "resource": "https://celestrak.org/resource/resource.txt",
-    "debris":   "https://celestrak.org/debris/cosmos-2251-debris.txt",
+    "stations":   "https://celestrak.org/NORAD/elements/gp.php?GROUP=STATIONS&FORMAT=TLE",
+    "starlink":   "https://celestrak.org/NORAD/elements/gp.php?GROUP=STARLINK&FORMAT=TLE",
+    "gps":        "https://celestrak.org/NORAD/elements/gp.php?GROUP=GPS-OPS&FORMAT=TLE",
+    "navigation": "https://celestrak.org/NORAD/elements/gp.php?GROUP=GLONASS&FORMAT=TLE",
+    "weather":    "https://celestrak.org/NORAD/elements/gp.php?GROUP=WEATHER&FORMAT=TLE",
+    "resource":   "https://celestrak.org/NORAD/elements/gp.php?GROUP=RESOURCE&FORMAT=TLE",
+    "military":   "https://celestrak.org/NORAD/elements/gp.php?GROUP=MILITARY&FORMAT=TLE",
+    "amateur":    "https://celestrak.org/NORAD/elements/gp.php?GROUP=AMATEUR&FORMAT=TLE",
+    "debris":     "https://celestrak.org/NORAD/elements/gp.php?GROUP=COSMOS-DEB&FORMAT=TLE",
+    "oneweb":     "https://celestrak.org/NORAD/elements/gp.php?GROUP=ONEWEB&FORMAT=TLE",
+    "planet":     "https://celestrak.org/NORAD/elements/gp.php?GROUP=PLANET&FORMAT=TLE",
+    "spire":      "https://celestrak.org/NORAD/elements/gp.php?GROUP=SPIRE&FORMAT=TLE",
+}
+
+# Метаданные групп для фронтенда
+GROUP_META = {
+    # Назначение
+    "stations":   {"label": "🛸 Орбитальные станции", "category": "purpose"},
+    "starlink":   {"label": "🌐 Starlink",             "category": "operator"},
+    "oneweb":     {"label": "🌐 OneWeb",               "category": "operator"},
+    "planet":     {"label": "🌍 Planet Labs",          "category": "operator"},
+    "spire":      {"label": "📡 Spire",                "category": "operator"},
+    "gps":        {"label": "🧭 GPS",                  "category": "purpose"},
+    "navigation": {"label": "🧭 Навигация",            "category": "purpose"},
+    "weather":    {"label": "🌤 Метео",                "category": "purpose"},
+    "resource":   {"label": "🌍 ДЗЗ",                 "category": "purpose"},
+    "military":   {"label": "🎖 Военные",              "category": "purpose"},
+    "amateur":    {"label": "📻 Любительские",         "category": "purpose"},
+    "debris":     {"label": "☄️ Космический мусор",    "category": "purpose"},
 }
 
 # Простой in-memory кэш

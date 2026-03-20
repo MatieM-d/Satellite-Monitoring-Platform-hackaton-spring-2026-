@@ -138,3 +138,13 @@ def _greenwich_sidereal_time(jd_full: float) -> float:
     gst = 280.46061837 + 360.98564736629 * (jd_full - 2451545.0) + \
           0.000387933 * T**2 - T**3 / 38710000.0
     return math.radians(gst % 360)
+
+@router.get("/groups")
+async def get_groups():
+    from app.services.celestrak import GROUP_META
+    return {
+        "groups": [
+            {"value": k, **v}
+            for k, v in GROUP_META.items()
+        ]
+    }
