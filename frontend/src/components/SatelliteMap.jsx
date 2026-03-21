@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useSatellites } from '../hooks/useSatellites'
-import { getOrbitColor, getOrbitTrack } from '../utils/tle'
+import { getOrbitColor, getOrbitTrack, getSatellitePosition } from '../utils/tle'
 
 delete L.Icon.Default.prototype._getIconUrl
 L.Icon.Default.mergeOptions({
@@ -50,16 +50,48 @@ function getMaxSatellites(zoom) {
   return 50
 }
 
-export default function SatelliteMap({ group, orbitFilter, onSelectSat }) {
+export default function SatelliteMap({ groups, orbitFilter, simTime, onSelectSat, customSatellites }) {
   const mapRef = useRef(null)
   const mapInstanceRef = useRef(null)
   const markersRef = useRef({})
   const trackLayerRef = useRef(null)
   const coverageLayerRef = useRef(null)
 
-  const { positions, loading, error } = useSatellites(group)
+  const { positions: fetchedPositions, loading, error } = useSatellites(
+    customSatellites ? [] : (groups || [])
+  )
+
+  const [customPositions, setCustomPositions] = useState([])
   const [selectedNorad, setSelectedNorad] = useState(null)
   const [zoomLevel, setZoomLevel] = useState(2)
+
+  useEffect(() => {
+    if (!customSatellites || customSatellites.length === 0) {
+      const timer = setTimeout(() => setCustomPositions([]), 0)
+      return () => clearTimeout(timer)
+    }
+
+    function calcPositions() {
+      const date = simTime ? new Date(simTime) : new Date()
+      const result = customSatellites
+        .map(sat => {
+          const pos = getSatellitePosition(sat.line1, sat.line2, date)
+          if (!pos) return null
+          return { ...sat, ...pos }
+        })
+        .filter(Boolean)
+      setCustomPositions(result)
+    }
+
+    const timer = setTimeout(calcPositions, 0)
+    const interval = setInterval(calcPositions, 5000)
+    return () => {
+      clearTimeout(timer)
+      clearInterval(interval)
+    }
+  }, [customSatellites, simTime])
+
+  const positions = customSatellites ? customPositions : fetchedPositions
 
   const handleSatClick = useCallback((sat) => {
     const map = mapInstanceRef.current
@@ -71,7 +103,6 @@ export default function SatelliteMap({ group, orbitFilter, onSelectSat }) {
     trackLayerRef.current.clearLayers()
     coverageLayerRef.current.clearLayers()
 
-    // Трек орбиты
     const track = getOrbitTrack(sat.line1, sat.line2, 120, sat.period_min || 90)
     if (track.length > 1) {
       const segments = splitTrackByAntimeridian(track)
@@ -85,7 +116,6 @@ export default function SatelliteMap({ group, orbitFilter, onSelectSat }) {
       })
     }
 
-    // Зона радиовидимости
     const altKm = sat.alt || 400
     const coverageRadius = Math.sqrt(
       Math.pow(altKm + 6371, 2) - Math.pow(6371, 2)
@@ -103,18 +133,19 @@ export default function SatelliteMap({ group, orbitFilter, onSelectSat }) {
     map.panTo([sat.lat, sat.lon])
   }, [onSelectSat])
 
-  // Инициализация карты
   useEffect(() => {
     if (mapInstanceRef.current) return
 
     const map = L.map(mapRef.current, {
         center: [20, 0],
         zoom: 2,
-        zoomControl: false,    // ← убираем кнопки +/−
+        zoomControl: false,
         attributionControl: false,
-        minZoom: 2,            // ← минимальный зум (весь мир)
-        maxZoom: 10,           // ← максимальный зум (город)
-    })
+        minZoom: 2,
+        maxZoom: 10,
+        maxBounds: [[-85, -180], [85, 180]],  
+        maxBoundsViscosity: 1.0,            
+        })
 
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
       maxZoom: 19,
@@ -123,9 +154,7 @@ export default function SatelliteMap({ group, orbitFilter, onSelectSat }) {
     trackLayerRef.current = L.layerGroup().addTo(map)
     coverageLayerRef.current = L.layerGroup().addTo(map)
 
-    map.on('zoomend', () => {
-      setZoomLevel(map.getZoom())
-    })
+    map.on('zoomend', () => setZoomLevel(map.getZoom()))
 
     mapInstanceRef.current = map
 
@@ -135,13 +164,11 @@ export default function SatelliteMap({ group, orbitFilter, onSelectSat }) {
     }
   }, [])
 
-  // Обновление маркеров с учётом зума
   useEffect(() => {
     const map = mapInstanceRef.current
     if (!map) return
 
     const maxSats = getMaxSatellites(zoomLevel)
-
     const filtered = (orbitFilter
       ? positions.filter(p => p.orbit_type === orbitFilter)
       : positions
@@ -149,7 +176,6 @@ export default function SatelliteMap({ group, orbitFilter, onSelectSat }) {
 
     const activeIds = new Set(filtered.map(p => p.norad_id))
 
-    // Удаляем лишние маркеры
     Object.keys(markersRef.current).forEach(id => {
       if (!activeIds.has(Number(id))) {
         markersRef.current[id].remove()
@@ -157,7 +183,6 @@ export default function SatelliteMap({ group, orbitFilter, onSelectSat }) {
       }
     })
 
-    // Добавляем / обновляем маркеры
     filtered.forEach(sat => {
       const isSelected = sat.norad_id === selectedNorad
       const color = isSelected ? '#ffffff' : getOrbitColor(sat.orbit_type)
@@ -179,8 +204,7 @@ export default function SatelliteMap({ group, orbitFilter, onSelectSat }) {
     <div className="relative w-full h-full">
       <div ref={mapRef} className="w-full h-full" />
 
-      {/* Лоадер */}
-      {loading && (
+      {loading && !customSatellites && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-950/70 z-[500]">
           <div className="text-center">
             <div className="w-10 h-10 border-4 border-green-400 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
@@ -189,22 +213,19 @@ export default function SatelliteMap({ group, orbitFilter, onSelectSat }) {
         </div>
       )}
 
-      {/* Ошибка */}
-      {error && (
+      {error && !customSatellites && (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[500] bg-red-900/80 text-red-200 px-4 py-2 rounded-lg text-sm">
           ⚠️ {error} — убедитесь что бэкенд запущен на порту 8000
         </div>
       )}
 
-      {/* Счётчик спутников */}
       <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[500] bg-gray-900/80 text-gray-300 px-3 py-1 rounded-full text-xs">
         🛰 Показано: {Math.min(positions.length, getMaxSatellites(zoomLevel))} / {positions.length}
-        {zoomLevel < 4 && (
+        {zoomLevel < 4 && positions.length > 50 && (
           <span className="text-yellow-400 ml-2">← приблизьте для большего</span>
         )}
       </div>
 
-      {/* Легенда */}
       <div className="absolute bottom-16 right-4 z-[500] bg-gray-900/90 rounded-lg p-3 text-xs text-gray-300 space-y-1">
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-green-400" />

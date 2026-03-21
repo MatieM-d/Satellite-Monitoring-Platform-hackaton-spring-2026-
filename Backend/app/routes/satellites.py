@@ -1,5 +1,6 @@
-from fastapi import APIRouter, HTTPException, Query
-from app.services.celestrak import fetch_tle_group, fetch_all_tle, TLE_URLS
+import httpx
+from fastapi import APIRouter, HTTPException, Query, Request
+from app.services.celestrak import fetch_tle_group, fetch_all_tle, TLE_URLS, _parse_tle
 from sgp4.api import Satrec, jday
 from datetime import datetime, timezone
 import math
@@ -148,3 +149,25 @@ async def get_groups():
             for k, v in GROUP_META.items()
         ]
     }
+
+@router.get("/custom")
+async def get_custom_url(url: str = Query(..., description="URL TLE файла")):
+    """Загрузить TLE по произвольному URL"""
+    async with httpx.AsyncClient(timeout=15) as client:
+        try:
+            resp = await client.get(url)
+            resp.raise_for_status()
+            satellites = _parse_tle(resp.text)
+            return {"count": len(satellites), "satellites": satellites}
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.post("/upload")
+async def upload_tle(request: Request):
+    """Загрузить TLE из тела запроса (plain text)"""
+    from fastapi import Request
+    body = await request.body()
+    text = body.decode("utf-8")
+    satellites = _parse_tle(text)
+    return {"count": len(satellites), "satellites": satellites}

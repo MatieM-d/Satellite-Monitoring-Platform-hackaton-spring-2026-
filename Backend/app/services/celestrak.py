@@ -14,35 +14,61 @@ SATELLITE_GROUPS = {
 }
 
 TLE_URLS = {
+    # Назначение
     "stations":   "https://celestrak.org/NORAD/elements/gp.php?GROUP=STATIONS&FORMAT=TLE",
-    "starlink":   "https://celestrak.org/NORAD/elements/gp.php?GROUP=STARLINK&FORMAT=TLE",
-    "gps":        "https://celestrak.org/NORAD/elements/gp.php?GROUP=GPS-OPS&FORMAT=TLE",
-    "navigation": "https://celestrak.org/NORAD/elements/gp.php?GROUP=GLONASS&FORMAT=TLE",
     "weather":    "https://celestrak.org/NORAD/elements/gp.php?GROUP=WEATHER&FORMAT=TLE",
+    "noaa":       "https://celestrak.org/NORAD/elements/gp.php?GROUP=NOAA&FORMAT=TLE",
+    "goes":       "https://celestrak.org/NORAD/elements/gp.php?GROUP=GOES&FORMAT=TLE",
     "resource":   "https://celestrak.org/NORAD/elements/gp.php?GROUP=RESOURCE&FORMAT=TLE",
     "military":   "https://celestrak.org/NORAD/elements/gp.php?GROUP=MILITARY&FORMAT=TLE",
     "amateur":    "https://celestrak.org/NORAD/elements/gp.php?GROUP=AMATEUR&FORMAT=TLE",
+    "cubesat":    "https://celestrak.org/NORAD/elements/gp.php?GROUP=CUBESAT&FORMAT=TLE",
     "debris":     "https://celestrak.org/NORAD/elements/gp.php?GROUP=COSMOS-DEB&FORMAT=TLE",
+    "education":  "https://celestrak.org/NORAD/elements/gp.php?GROUP=EDUCATION&FORMAT=TLE",
+    # Навигация (MEO)
+    "gps":        "https://celestrak.org/NORAD/elements/gp.php?GROUP=GPS-OPS&FORMAT=TLE",
+    "glonass":    "https://celestrak.org/NORAD/elements/gp.php?GROUP=GLO-OPS&FORMAT=TLE",
+    "galileo":    "https://celestrak.org/NORAD/elements/gp.php?GROUP=GALILEO&FORMAT=TLE",
+    "beidou":     "https://celestrak.org/NORAD/elements/gp.php?GROUP=BEIDOU&FORMAT=TLE",
+    # GEO
+    "geo":        "https://celestrak.org/NORAD/elements/gp.php?GROUP=GEO&FORMAT=TLE",
+    "gorizont":   "https://celestrak.org/NORAD/elements/gp.php?GROUP=GORIZONT&FORMAT=TLE",
+    "raduga":     "https://celestrak.org/NORAD/elements/gp.php?GROUP=RADUGA&FORMAT=TLE",
+    "molniya":    "https://celestrak.org/NORAD/elements/gp.php?GROUP=MOLNIYA&FORMAT=TLE",
+    # Операторы
+    "starlink":   "https://celestrak.org/NORAD/elements/gp.php?GROUP=STARLINK&FORMAT=TLE",
     "oneweb":     "https://celestrak.org/NORAD/elements/gp.php?GROUP=ONEWEB&FORMAT=TLE",
     "planet":     "https://celestrak.org/NORAD/elements/gp.php?GROUP=PLANET&FORMAT=TLE",
     "spire":      "https://celestrak.org/NORAD/elements/gp.php?GROUP=SPIRE&FORMAT=TLE",
+    "iridium":    "https://celestrak.org/NORAD/elements/gp.php?GROUP=IRIDIUM-NEXT&FORMAT=TLE",
+    "globalstar": "https://celestrak.org/NORAD/elements/gp.php?GROUP=GLOBALSTAR&FORMAT=TLE",
 }
 
-# Метаданные групп для фронтенда
 GROUP_META = {
-    # Назначение
     "stations":   {"label": "🛸 Орбитальные станции", "category": "purpose"},
-    "starlink":   {"label": "🌐 Starlink",             "category": "operator"},
-    "oneweb":     {"label": "🌐 OneWeb",               "category": "operator"},
-    "planet":     {"label": "🌍 Planet Labs",          "category": "operator"},
-    "spire":      {"label": "📡 Spire",                "category": "operator"},
-    "gps":        {"label": "🧭 GPS",                  "category": "purpose"},
-    "navigation": {"label": "🧭 Навигация",            "category": "purpose"},
-    "weather":    {"label": "🌤 Метео",                "category": "purpose"},
+    "weather":    {"label": "🌤 Метеорология",         "category": "purpose"},
+    "noaa":       {"label": "🌤 NOAA",                 "category": "purpose"},
+    "goes":       {"label": "🌤 GOES",                 "category": "purpose"},
     "resource":   {"label": "🌍 ДЗЗ",                 "category": "purpose"},
     "military":   {"label": "🎖 Военные",              "category": "purpose"},
     "amateur":    {"label": "📻 Любительские",         "category": "purpose"},
-    "debris":     {"label": "☄️ Космический мусор",    "category": "purpose"},
+    "cubesat":    {"label": "🔬 CubeSat",              "category": "purpose"},
+    "debris":     {"label": "☄️ Мусор (Космос)",       "category": "purpose"},
+    "education":  {"label": "🎓 Образовательные",      "category": "purpose"},
+    "gps":        {"label": "🧭 GPS (США)",            "category": "navigation"},
+    "glonass":    {"label": "🧭 ГЛОНАСС (Россия)",     "category": "navigation"},
+    "galileo":    {"label": "🧭 Galileo (ЕС)",         "category": "navigation"},
+    "beidou":     {"label": "🧭 BeiDou (Китай)",       "category": "navigation"},
+    "geo":        {"label": "🌐 GEO спутники",         "category": "navigation"},
+    "gorizont":   {"label": "📡 Горизонт (Россия)",    "category": "navigation"},
+    "raduga":     {"label": "📡 Радуга (Россия)",      "category": "navigation"},
+    "molniya":    {"label": "📡 Молния (Россия)",      "category": "navigation"},
+    "starlink":   {"label": "🌐 Starlink (SpaceX)",    "category": "operator"},
+    "oneweb":     {"label": "🌐 OneWeb",               "category": "operator"},
+    "planet":     {"label": "🌍 Planet Labs",          "category": "operator"},
+    "spire":      {"label": "📡 Spire Global",         "category": "operator"},
+    "iridium":    {"label": "📱 Iridium NEXT",         "category": "operator"},
+    "globalstar": {"label": "📱 Globalstar",           "category": "operator"},
 }
 
 # Простой in-memory кэш

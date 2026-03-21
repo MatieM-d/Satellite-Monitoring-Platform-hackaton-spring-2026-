@@ -1,48 +1,63 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import axios from 'axios'
 import { getSatellitePosition } from '../utils/tle'
 
 const API_BASE = 'http://localhost:8000/api'
 
-export function useSatellites(group = 'stations') {
+export function useSatellites(groups = []) {
   const [satellites, setSatellites] = useState([])
   const [positions, setPositions] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const satellitesRef = useRef([])
 
-  // Загрузка TLE данных
+  const groupsKey = useMemo(() => groups.join(','), [groups])
+
   useEffect(() => {
+    if (!groups || groups.length === 0) {
+      setSatellites([])
+      satellitesRef.current = []
+      return
+    }
+
     let cancelled = false
 
-    // Задержка чтобы избежать синхронного setState в effect
-    const timer = setTimeout(() => {
+    const timer = setTimeout(async () => {
       if (!cancelled) setLoading(true)
 
-      axios.get(`${API_BASE}/satellites/`, { params: { group } })
-        .then(res => {
-          if (!cancelled) {
-            setSatellites(res.data.satellites)
-            satellitesRef.current = res.data.satellites
-            setError(null)
-          }
-        })
-        .catch(err => {
-          if (!cancelled) {
-            setError('Ошибка загрузки данных')
-            console.error(err)
-          }
-        })
-        .finally(() => {
-          if (!cancelled) setLoading(false)
-        })
+      try {
+        const results = await Promise.all(
+          groups.map(group =>
+            axios.get(`${API_BASE}/satellites/`, { params: { group } })
+              .then(r => r.data.satellites)
+              .catch(() => [])
+          )
+        )
+
+        if (!cancelled) {
+          const seen = new Set()
+          const merged = results.flat().filter(sat => {
+            if (seen.has(sat.norad_id)) return false
+            seen.add(sat.norad_id)
+            return true
+          })
+
+          setSatellites(merged)
+          satellitesRef.current = merged
+          setError(null)
+        }
+      } catch {
+        if (!cancelled) setError('Ошибка загрузки данных')
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
     }, 0)
 
     return () => {
       cancelled = true
       clearTimeout(timer)
     }
-  }, [group])
+  }, [groupsKey])
 
   const updatePositions = useCallback((simTime = null) => {
     const sats = satellitesRef.current
@@ -63,7 +78,6 @@ export function useSatellites(group = 'stations') {
   useEffect(() => {
     const timer = setTimeout(() => updatePositions(), 100)
     const interval = setInterval(() => updatePositions(), 5000)
-
     return () => {
       clearTimeout(timer)
       clearInterval(interval)
