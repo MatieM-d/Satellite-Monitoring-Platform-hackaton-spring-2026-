@@ -1,5 +1,6 @@
 import { useState } from 'react'
 
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000/api'
 const GROUPS = {
   purpose: [
     { value: 'stations',  label: '🛸 Орбитальные станции' },
@@ -73,8 +74,8 @@ export default function FilterPanel({
     setUrlLoading(true)
     try {
       const res = await fetch(
-        `http://localhost:8000/api/satellites/custom?url=${encodeURIComponent(customUrl)}`
-      )
+        `${API_BASE}/satellites/custom?url=${encodeURIComponent(customUrl)}`
+        )
       if (!res.ok) throw new Error('Ошибка загрузки')
       const data = await res.json()
       if (data.satellites.length === 0) throw new Error('Спутники не найдены')
@@ -93,7 +94,7 @@ export default function FilterPanel({
     const reader = new FileReader()
     reader.onload = async (ev) => {
       try {
-        const res = await fetch('http://localhost:8000/api/satellites/upload', {
+        const res = await fetch(`${API_BASE}/satellites/upload`, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain' },
           body: ev.target.result,

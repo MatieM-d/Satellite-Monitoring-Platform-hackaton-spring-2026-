@@ -1,0 +1,16 @@
+services:
+  backend:
+    build: ./backend
+    container_name: satellite-backend
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: satellite-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
